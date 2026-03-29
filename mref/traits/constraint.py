@@ -11,11 +11,15 @@ class Constraint(mref.Trait):
         self._dependency_node = om.MFnDependencyNode(self._pointer)
 
     @classmethod
-    def can_bind(cls, pointer):
+    def can_bind(cls, pointer: om.MObject) -> bool:
+        """
+        This determines whether this trait can be bound to the given object
+        """
         if isinstance(pointer, om.MObject) and pointer.hasFn(om.MFn.kConstraint):
             return True
+        return False
 
-    def driven(self):
+    def driven(self) -> mref.ReferencedItem|None:
         """
         Returns the node being driven by the constraint
         """
@@ -36,7 +40,7 @@ class Constraint(mref.Trait):
 
         return None
 
-    def drivers(self):
+    def drivers(self) -> list[mref.ReferencedItem]:
         """
         Returns the list of drivers for the constraint
         """
@@ -54,17 +58,19 @@ class Constraint(mref.Trait):
 
                 source = child.source()
 
-                if not source.isNull:
-                    referenced_node = mref.get(source.node())
+                if source.isNull:
+                    continue
 
-                    if referenced_node == self.item:
-                        continue
-                    if referenced_node not in drivers:
-                        drivers.append(referenced_node)
+                referenced_node = mref.get(source.node())
+
+                if referenced_node == self.item:
+                    continue
+                if referenced_node not in drivers:
+                    drivers.append(referenced_node)
 
         return drivers
 
-    def weight_attributes(self):
+    def weight_attributes(self) -> list[str]:
         """
         Returns a list of weight attributes for the constraint
         """
