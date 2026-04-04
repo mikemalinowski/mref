@@ -70,11 +70,21 @@ class Constraint(mref.Trait):
 
         return drivers
 
-    def weight_attributes(self) -> list[str]:
+    def weight_attributes(self, full_name=False) -> list[mref.ReferencedItem|str]:
         """
         Returns a list of weight attributes for the constraint
         """
         constraint_type = cmds.nodeType(self.item.full_name())
 
         constraint_func = getattr(cmds, constraint_type)
-        return constraint_func(query=True, weightAliasList=True)
+        attribute_names = constraint_func(self.item.full_name(), query=True, weightAliasList=True)
+
+        if not full_name:
+            return attribute_names
+
+        return mref.get(
+            [
+                f"{self.item.full_name()}.{attribute_name}"
+                for attribute_name in attribute_names
+            ]
+        )

@@ -10,4 +10,5 @@ from .core import select
 from .core import Trait
 from .core import ReferencedItem
 
+from . import time
 from . import constants

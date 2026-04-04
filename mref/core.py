@@ -200,10 +200,10 @@ def get(identifier: typing.Any) -> ReferencedItem|list[ReferencedItem]:
     ReferenceItem or a list of ReferencedItems.
     """
     if isinstance(identifier, list):
-        return [
+        return MRefList(
             ReferencedItem(sub_identifier)
             for sub_identifier in identifier
-        ]
+        )
     return ReferencedItem(identifier)
 
 
@@ -213,24 +213,29 @@ def create(*args, **kwargs) -> ReferencedItem|list[ReferencedItem]:
     casts. For any types which return a list of items, then a list of
     ReferencedItems is returned.
     """
+    parent = kwargs.get("parent", None)
     result = cmds.createNode(*args, **kwargs)
 
     if isinstance(result, list):
-        return [
+        return MRefList(
             get(node)
             for node in result
-        ]
-    return get(result)
+        )
+    node = get(result)
+
+    if parent:
+        node.set_parent(parent)
+    return node
 
 
 def selected() -> list[ReferencedItem]:
     """
     This will return the current selection as a list of ReferencedItems.
     """
-    return [
+    return MRefList(
         get(node)
         for node in cmds.ls(selection=True, long=True)
-    ]
+    )
 
 
 def find(search_string: str, **kwargs) -> list[ReferencedItem]:
@@ -242,10 +247,10 @@ def find(search_string: str, **kwargs) -> list[ReferencedItem]:
     if "long" in kwargs:
         kwargs.pop("long")
 
-    return [
+    return MRefList(
         get(node)
         for node in cmds.ls(search_string, long=True, **kwargs)
-    ]
+    )
 
 
 def select(nodes: ReferencedItem|list[ReferencedItem]) -> None:
@@ -257,3 +262,36 @@ def select(nodes: ReferencedItem|list[ReferencedItem]) -> None:
 
     nodes = [node.full_name() if isinstance(node, ReferencedItem) else node for node in nodes]
     cmds.select(nodes)
+
+
+def delete(nodes: ReferencedItem|list[ReferencedItem]) -> None:
+    if not isinstance(nodes, list):
+        nodes = [nodes]
+
+    for node in nodes:
+        if isinstance(node, ReferencedItem):
+            node = node.full_name()
+        cmds.delete(node)
+
+
+class MRefList(list):
+
+    def names(self):
+        results = []
+
+        for node in self:
+            if isinstance(node, ReferencedItem):
+                results.append(node.name())
+            else:
+                results.append(node)
+        return results
+
+    def full_names(self):
+        results = []
+
+        for node in self:
+            if isinstance(node, ReferencedItem):
+                results.append(node.full_name())
+            else:
+                results.append(node)
+        return results
