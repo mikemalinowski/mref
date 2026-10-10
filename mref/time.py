@@ -17,6 +17,21 @@ def active_end_frame() -> int:
     """
     return int(cmds.playbackOptions(query=True, maxTime=True))
 
+def set_active_start_frame(value: int) -> int:
+    """
+    Returns the active start frame of the scene as an integer
+    :return:
+    """
+    return int(cmds.playbackOptions(minTime=value))
+
+
+def set_active_end_frame(value: int) -> int:
+    """
+    Returns the active end frame of the scene as an integer
+    :return:
+    """
+    return int(cmds.playbackOptions(maxTime=value))
+
 
 def scope_start_frame() -> int:
     """
@@ -55,9 +70,9 @@ def selected_frame_range() -> list[int]:
 
     return [
         int(time_range[0]),
-        int(time_range[1]),
+        int(time_range[1] - 1),
     ]
 
 def selected_number_of_frames():
     frame_range = selected_frame_range()
-    return (frame_range[1] - frame_range[0])
+    return (frame_range[1] - frame_range[0]) + 1

@@ -190,12 +190,15 @@ class Attribute(mref.Trait):
         drive the value of the other attribute.
         """
         attribute = mref.get(attribute)
-        cmds.connectAttr(
-            self.path(),
-            attribute.path(),
-            force=force,
-            **kwargs
-        )
+        try:
+            cmds.connectAttr(
+                self.path(),
+                attribute.path(),
+                force=force,
+                **kwargs
+            )
+        except:
+            print(f"Could not connect {self} to {attribute}")
 
     def connect_next(
         self,
@@ -251,6 +254,16 @@ class Attribute(mref.Trait):
         This will return a list of connected plugs
         """
         return self.outputs() + self.inputs()
+
+    def animation(self) -> mref.ReferencedItem|None:
+        """
+        This will return any animation curve node that is DIRECTLY connected to
+        this attribute.
+        """
+        for driving_attribute in self.inputs():
+            if "animCurve" in driving_attribute.node().node_type():
+                return driving_attribute.node()
+        return None
 
     def inputs(self, node_type=None, skip_converters=True) -> list[mref.ReferencedItem]:
         """

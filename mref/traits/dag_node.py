@@ -72,7 +72,7 @@ class DagNode(mref.Trait):
         return mref.ReferenceList(
             [
                 mref.get(node)
-                for node in cmds.listRelatives(self.item.full_name(), children=True, **additional_args) or []
+                for node in cmds.listRelatives(self.item.full_name(), children=True, path=True, **additional_args) or []
                 if not name_match or name_match in node.split("|")[-1]
                 if include_shapes or not cmds.objectType(node, isAType="shape")
             ],
@@ -218,3 +218,40 @@ class DagNode(mref.Trait):
                 results.append(child)
 
         return results
+
+    def has_zeroed_pivots(self, tolerance=1e-6):
+        """Return True if the transform has reset/frozen pivots.
+
+        Checks that rotatePivot, scalePivot, rotatePivotTranslate and
+        scalePivotTranslate are all at the origin. Accepts either a transform
+        or a shape name.
+        """
+        for attr in ("rotatePivot", "scalePivot", "rotatePivotTranslate", "scalePivotTranslate"):
+            x, y, z = cmds.getAttr("{}.{}".format(self.item.full_name(), attr))[0]
+            if abs(x) > tolerance or abs(y) > tolerance or abs(z) > tolerance:
+                return False
+        return True
+
+    def lock_transform_attributes(self, hide=False) -> None:
+        """
+        Locks the nine scalar transform channels on this node — translateX/Y/Z,
+        rotateX/Y/Z, scaleX/Y/Z. Does not lock visibility, nor the parent
+        compound translate/rotate/scale attributes themselves. Has no unlock
+        counterpart; call ``unlock_attributes`` with explicit channel names
+        to reverse.
+        """
+        for type_ in ["t", "r", "s"]:
+            for axis in ["x", "y", "z"]:
+                cmds.setAttr(f"{self.item.full_name()}.{type_}{axis}", lock=True, channelBox=not hide)
+
+    def unlock_transform_attributes(self, hide=False) -> None:
+        """
+        Locks the nine scalar transform channels on this node — translateX/Y/Z,
+        rotateX/Y/Z, scaleX/Y/Z. Does not lock visibility, nor the parent
+        compound translate/rotate/scale attributes themselves. Has no unlock
+        counterpart; call ``unlock_attributes`` with explicit channel names
+        to reverse.
+        """
+        for type_ in ["t", "r", "s"]:
+            for axis in ["x", "y", "z"]:
+                cmds.setAttr(f"{self.item.full_name()}.{type_}{axis}", lock=False, channelBox=not hide)
