@@ -64,7 +64,10 @@ Maya 2025 and 2026.
 
 ## API docs
 
-Open [`docs/index.html`](docs/index.html) in a browser for the full API: a
+You can view the API Docs from the Github Pages site here: 
+https://mikemalinowski.github.io/mref/
+
+Alternatively, open [`docs/index.html`](docs/index.html) in a browser for the full API: a
 page for every trait and every Maya node type, listing each method with its
 signature, docstring and the trait it comes from. Node type pages show
 which traits bind to that type and mark any method a higher priority trait
